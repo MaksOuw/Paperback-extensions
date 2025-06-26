@@ -13,7 +13,8 @@ import {
     Response,
     MangaTile,
     Tag,
-    TagSection
+    TagSection,
+    BadgeColor
 } from '@paperback/types'
 
 import * as cheerio from 'cheerio'
@@ -22,6 +23,7 @@ const BASE_URL = "https://starboundscans.com";
 
 // Metadonnées exportées pour la toolchain
 export const StarboundScansInfo: SourceInfo = {
+    apiVersion: '^0.8.0',
     version: '1.2.1',
     name: 'Starbound Scans',
     icon: 'icon.png',
@@ -33,33 +35,61 @@ export const StarboundScansInfo: SourceInfo = {
     sourceTags: [
         {
             text: 'Français',
-            type: 'language'
+            type: BadgeColor.GREY
         },
         {
             text: 'Webtoon',
-            type: 'info'
-        }
+            type: BadgeColor.GREEN
+        },
+	{
+	    text: 'StarboundScans',
+	    type: BadgeColor.GREEN
+        },
     ]
 }
 
 export class StarboundScans implements Source {
+    /**
+     * Un User-Agent de navigateur valide est essentiel pour passer Cloudflare.
+     * Celui-ci sera automatiquement mis à jour par la WebView.
+     */
+    private userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36';
 
     private readonly requestManager = App.createRequestManager({
         requestsPerSecond: 4,
-        requestTimeout: 15000,
+        requestTimeout: 20000,
         interceptor: {
             interceptRequest: async (request: Request): Promise<Request> => {
+                // Le seul travail de l'intercepteur est maintenant d'ajouter les bons en-têtes.
+                // Paperback s'occupe de stocker et d'injecter les cookies automatiquement.
                 request.headers = {
                     ...(request.headers ?? {}),
+                    'User-Agent': this.userAgent,
                     'Referer': BASE_URL
                 }
                 return request
             },
+
+            // L'interceptResponse n'est plus nécessaire pour le bypass.
             interceptResponse: async (response: Response): Promise<Response> => {
+                // On met à jour notre User-Agent au cas où il aurait été modifié par une requête WebView
+                this.userAgent = response.request.headers?.['User-Agent'] ?? this.userAgent
                 return response
             }
         }
     });
+
+    async getCloudflareBypassRequestAsync(): Request {
+        return App.createRequest({
+            url: BASE_URL,
+            method: 'GET',
+            headers: {
+		'referer': `${BASE_URL}/`,
+		'origin': `${BASE_URL}/`,
+                'User-Agent': await this.requestManager.getDefaultUserAgent()
+            }
+        });
+    }
 
     // Requis par l'interface Source, mais pas utilisé ici car la recherche
     // est gérée par getSearchResults
@@ -210,6 +240,8 @@ export class StarboundScans implements Source {
             method: 'GET'
         });
         
+        console.log('Executing search : ' + `${BASE_URL}/series/?q=${encodeURIComponent(query.title ?? '')}`);
+
         const response = await this.requestManager.schedule(request, 1);
         const $ = cheerio.load(response.data as string);
         
@@ -236,6 +268,8 @@ export class StarboundScans implements Source {
                 }));
             }
         });
+
+	console.log(results);
 
         return App.createPagedResults({
             results: results

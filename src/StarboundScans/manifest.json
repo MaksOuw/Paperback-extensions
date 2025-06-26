@@ -10,11 +10,11 @@
   "tags": [
     {
       "text": "Français",
-      "type": "language"
+      "type": "PRIMARY"
     },
     {
       "text": "Webtoon",
-      "type": "info"
+      "type": "SUCCESS"
     }
   ]
 }
