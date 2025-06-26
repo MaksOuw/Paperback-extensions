@@ -2,6 +2,7 @@
   "name": "MaksOuw's Paperback extensions",
   "author": "MaksOuw",
   "description": "French webtoon and mangas scans sites",
+  "versioning": "https://raw.githubusercontent.com/MaksOuw/Paperback-extensions/refs/heads/main/versioning.json",
   "extensions": [
     {
       "file": "https://raw.githubusercontent.com/MaksOuw/Paperback-extensions/refs/heads/main/StarboundScans.js",
