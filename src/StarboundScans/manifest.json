@@ -1,0 +1,20 @@
+{
+  "id": "starbound-scans",
+  "name": "Starbound Scans",
+  "author": "MaksOuw",
+  "version": "1.2.1",
+  "description": "Extension pour le site Starbound Scans",
+  "icon": "icon.png",
+  "language": "fr",
+  "website": "https://starboundscans.com/",
+  "tags": [
+    {
+      "text": "Français",
+      "type": "language"
+    },
+    {
+      "text": "Webtoon",
+      "type": "info"
+    }
+  ]
+}
